@@ -31,13 +31,19 @@ class Module:
 
     def train(self) -> None:
         "Set the mode of this module and all descendent modules to `train`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        modules_list = [self]
+        while modules_list:
+            curr = modules_list.pop()
+            curr.training = True
+            modules_list = curr.modules() + modules_list
 
     def eval(self) -> None:
         "Set the mode of this module and all descendent modules to `eval`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        modules_list = [self]
+        while modules_list:
+            curr = modules_list.pop()
+            curr.training = False
+            modules_list = curr.modules() + modules_list
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """
@@ -47,13 +53,26 @@ class Module:
         Returns:
             The name and `Parameter` of each ancestor parameter.
         """
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        named_params = self._parameters
+        modules_list = list(self._modules.items())
+        while modules_list:
+            curr_name, curr_module = modules_list.pop()
+            for k, v in curr_module._parameters.items():
+                named_params[curr_name + "." + k] = v
+            next_modules_dict = {curr_name + "." + kp: vp for kp, vp in curr_module._modules.items()}
+            modules_list = list(next_modules_dict.items()) + modules_list
+        return named_params
 
     def parameters(self) -> Sequence[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        params = list(self._parameters.values())
+        modules_list = self.modules()
+        while modules_list:
+            curr_module = modules_list.pop()
+            curr_module_params = list(curr_module._parameters.values())
+            params = params + curr_module_params
+            modules_list = curr_module.modules() + modules_list
+        return params
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
